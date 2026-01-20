@@ -1,6 +1,6 @@
 using MongoDB.Driver;
 
-namespace G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB;
+namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
 public sealed class MongoDBOptions
 {

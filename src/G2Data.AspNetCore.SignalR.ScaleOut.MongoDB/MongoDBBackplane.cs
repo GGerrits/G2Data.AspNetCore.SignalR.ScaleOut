@@ -1,8 +1,9 @@
+using G2Data.AspNetCore.SignalR.ScaleOut.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 
-namespace G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB;
+namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
 internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDBOptions mongoDBOptions) : ISignalRBackplane
 {

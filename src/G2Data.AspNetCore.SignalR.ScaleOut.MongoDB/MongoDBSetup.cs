@@ -1,7 +1,8 @@
-﻿using MongoDB.Bson;
+﻿using G2Data.AspNetCore.SignalR.ScaleOut.Core;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB;
+namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
 internal static class MongoDBSetup
 {

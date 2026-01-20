@@ -1,6 +1,7 @@
+using G2Data.AspNetCore.SignalR.ScaleOut.Core;
 using Microsoft.Extensions.Logging;
 
-namespace G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB;
+namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
 internal static partial class MongoDBBackplaneLog
 {

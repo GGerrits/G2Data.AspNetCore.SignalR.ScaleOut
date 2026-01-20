@@ -1,7 +1,8 @@
+using G2Data.AspNetCore.SignalR.ScaleOut.Core;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB;
+namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
 public static class SignalRServerBuilderExtensions
 {

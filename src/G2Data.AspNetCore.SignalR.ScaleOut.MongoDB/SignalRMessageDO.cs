@@ -1,6 +1,7 @@
+using G2Data.AspNetCore.SignalR.ScaleOut.Core;
 using System.Text.Json;
 
-namespace G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB;
+namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
 internal sealed class SignalRMessageDO
 {

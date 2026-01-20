@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G2Data.AspNetCore.SignalR.S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G2Data.AspNetCore.SignalR.ScaleOut.Core", "G2Data.AspNetCore.SignalR.ScaleOut.Core\G2Data.AspNetCore.SignalR.ScaleOut.Core.csproj", "{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB", "G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB\G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB.csproj", "{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G2Data.AspNetCore.SignalR.ScaleOut.MongoDB", "G2Data.AspNetCore.SignalR.ScaleOut.MongoDB\G2Data.AspNetCore.SignalR.ScaleOut.MongoDB.csproj", "{D735357F-6BC9-3773-3570-C1F788BFE221}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D735357F-6BC9-3773-3570-C1F788BFE221}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D735357F-6BC9-3773-3570-C1F788BFE221}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D735357F-6BC9-3773-3570-C1F788BFE221}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D735357F-6BC9-3773-3570-C1F788BFE221}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
