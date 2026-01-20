@@ -5,7 +5,7 @@ using MongoDB.Driver;
 
 namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
-internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDBOptions mongoDBOptions) : ISignalRBackplane
+internal sealed partial class MongoDBBackplane(IServiceProvider serviceProvider, MongoDBOptions mongoDBOptions) : ISignalRBackplane
 {
     private const string _defaultCollectionName = "SignalR.ScaleOut.Messages";
 
@@ -18,14 +18,14 @@ internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDB
     {
         if (_isConnected && _collection != null)
         {
-            MongoDBBackplaneLog.PublishingMessage(_logger
+            Log.PublishingMessage(_logger
                 , message.Scope
                 , message.Method
                 , message.SenderId
                 , message.SentAt);
             var msg = SignalRMessageDO.FromSignalRMessage(message);
             await _collection.InsertOneAsync(msg, null, cancellationToken).ConfigureAwait(false);
-            MongoDBBackplaneLog.MessagePublished(_logger
+            Log.MessagePublished(_logger
                 , message.Scope
                 , message.Method
                 , message.SenderId
@@ -42,27 +42,27 @@ internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDB
             {
                 var collectionName = mongoDBOptions.CollectionName ?? _defaultCollectionName;
 
-                MongoDBBackplaneLog.AquiringDB(_logger);
+                Log.AquiringDB(_logger);
                 _db = mongoDBOptions.GetDbDelegate!(serviceProvider);
-                MongoDBBackplaneLog.DBAcquired(_logger, _db.DatabaseNamespace.DatabaseName);
+                Log.DBAcquired(_logger, _db.DatabaseNamespace.DatabaseName);
 
-                MongoDBBackplaneLog.InitializingCollection(_logger, collectionName);
+                Log.InitializingCollection(_logger, collectionName);
                 MongoDBSetup.Init(_db, collectionName);
-                MongoDBBackplaneLog.CollectionInitialized(_logger, collectionName);
+                Log.CollectionInitialized(_logger, collectionName);
 
                 _collection = _db.GetCollection<SignalRMessageDO>(collectionName);
 
-                MongoDBBackplaneLog.CreatingChangeStream(_logger, collectionName);
+                Log.CreatingChangeStream(_logger, collectionName);
                 var pipeline = new EmptyPipelineDefinition<ChangeStreamDocument<SignalRMessageDO>>()
                     .Match(x => x.OperationType == ChangeStreamOperationType.Insert);
                 using var stream = await _collection.WatchAsync(pipeline, cancellationToken: cancellationToken).ConfigureAwait(false);
                 _isConnected = true;
-                MongoDBBackplaneLog.ChangeStreamCreated(_logger, collectionName);
+                Log.ChangeStreamCreated(_logger, collectionName);
                 while (await stream.MoveNextAsync(cancellationToken).ConfigureAwait(false))
                 {
                     foreach (var change in stream.Current)
                     {
-                        MongoDBBackplaneLog.ChangeStreamMessageReceived(_logger
+                        Log.ChangeStreamMessageReceived(_logger
                             , change.FullDocument.Scope
                             , change.FullDocument.Method
                             , change.FullDocument.SenderId
@@ -80,7 +80,7 @@ internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDB
             catch (Exception ex)
             {
                 _isConnected = false;
-                MongoDBBackplaneLog.CreateChangeStreamFailed(_logger, mongoDBOptions.ReconnectDelayInSeconds, ex);
+                Log.CreateChangeStreamFailed(_logger, mongoDBOptions.ReconnectDelayInSeconds, ex);
                 reconnect = true;
                 await Task.Delay(TimeSpan.FromSeconds(mongoDBOptions.ReconnectDelayInSeconds), cancellationToken).ConfigureAwait(false);
             }
