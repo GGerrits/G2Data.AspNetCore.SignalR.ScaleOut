@@ -9,7 +9,7 @@ internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDB
     private const string _defaultCollectionName = "SignalR.ScaleOut.Messages";
 
     private IMongoDatabase? _db;
-    private IMongoCollection<SignalRMessage>? _collection;
+    private IMongoCollection<SignalRMessageDO>? _collection;
     private readonly ILogger<MongoDBBackplane> _logger = serviceProvider.GetRequiredService<ILogger<MongoDBBackplane>>();
     private bool _isConnected;
 
@@ -22,7 +22,8 @@ internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDB
                 , message.Method
                 , message.SenderId
                 , message.SentAt);
-            await _collection.InsertOneAsync(message, null, cancellationToken).ConfigureAwait(false);
+            var msg = SignalRMessageDO.FromSignalRMessage(message);
+            await _collection.InsertOneAsync(msg, null, cancellationToken).ConfigureAwait(false);
             MongoDBBackplaneLog.MessagePublished(_logger
                 , message.Scope
                 , message.Method
@@ -43,15 +44,15 @@ internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDB
                 MongoDBBackplaneLog.AquiringDB(_logger);
                 _db = mongoDBOptions.GetDbDelegate!(serviceProvider);
                 MongoDBBackplaneLog.DBAcquired(_logger, _db.DatabaseNamespace.DatabaseName);
-                 
+
                 MongoDBBackplaneLog.InitializingCollection(_logger, collectionName);
                 MongoDBSetup.Init(_db, collectionName);
                 MongoDBBackplaneLog.CollectionInitialized(_logger, collectionName);
 
-                _collection = _db.GetCollection<SignalRMessage>(collectionName);
+                _collection = _db.GetCollection<SignalRMessageDO>(collectionName);
 
                 MongoDBBackplaneLog.CreatingChangeStream(_logger, collectionName);
-                var pipeline = new EmptyPipelineDefinition<ChangeStreamDocument<SignalRMessage>>()
+                var pipeline = new EmptyPipelineDefinition<ChangeStreamDocument<SignalRMessageDO>>()
                     .Match(x => x.OperationType == ChangeStreamOperationType.Insert);
                 using var stream = await _collection.WatchAsync(pipeline, cancellationToken: cancellationToken).ConfigureAwait(false);
                 _isConnected = true;
@@ -65,7 +66,8 @@ internal sealed class MongoDBBackplane(IServiceProvider serviceProvider, MongoDB
                             , change.FullDocument.Method
                             , change.FullDocument.SenderId
                             , change.FullDocument.SentAt);
-                        await onMessageReceived(change.FullDocument).ConfigureAwait(false);
+                        var message = change.FullDocument.ToSignalRMessage();
+                        await onMessageReceived(message).ConfigureAwait(false);
                     }
                 }
             }

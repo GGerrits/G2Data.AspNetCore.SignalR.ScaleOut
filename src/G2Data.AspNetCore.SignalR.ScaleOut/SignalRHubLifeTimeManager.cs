@@ -1,9 +1,9 @@
-﻿using G2Data.AspNetCore.SignalR.ScaleOut.Core;
+using G2Data.AspNetCore.SignalR.ScaleOut.Core;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Text.Json;
 
 namespace G2Data.AspNetCore.SignalR.ScaleOut;
 
@@ -13,7 +13,7 @@ public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> w
     {
         _backplane = backplane;
         _ = Task.Run(ListenAsync);
-        lifetime.ApplicationStopping.Register(() => _cts.Cancel());
+        lifetime.ApplicationStopping.Register(_cts.Cancel);
     }
 
     private readonly ISignalRBackplane _backplane;
@@ -27,8 +27,6 @@ public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> w
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _groups = new();
 
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _users = new();
-
-    private readonly JsonSerializerOptions _serializerOptions = new(JsonSerializerDefaults.Web);
 
     public override Task OnConnectedAsync(HubConnectionContext connection)
     {
@@ -81,10 +79,9 @@ public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> w
         return Task.CompletedTask;
     }
 
-    private async Task SendToConnections(IEnumerable<string> connectionIds, string method, string payload, IReadOnlySet<string>? exclude = null)
+    private async Task SendToConnections(IEnumerable<string> connectionIds, string method, object[] args, IReadOnlySet<string>? exclude = null)
     {
         var tasks = new List<Task>();
-        var args = JsonSerializer.Deserialize<object[]>(payload, _serializerOptions)!;
         foreach (var id in connectionIds)
         {
             if (exclude?.Contains(id) == true)
@@ -100,7 +97,7 @@ public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> w
             var task = conn.WriteAsync(serialized).AsTask();
             tasks.Add(task);
         }
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks).ConfigureAwait(false);
     }
 
     public override Task SendAllAsync(string methodName, object[] args, CancellationToken cancellationToken)
@@ -127,18 +124,17 @@ public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> w
     public override Task SendUserAsync(string userId, string methodName, object[] args, CancellationToken cancellationToken)
         => Publish(SignalRMessageScope.Users, methodName, args, [userId], null, cancellationToken);
 
-    public override Task SendUsersAsync(IReadOnlyList<string> userIds, string methodName, object[] args, CancellationToken cancellationToken)
+    public override Task SendUsersAsync( IReadOnlyList<string> userIds, string methodName, object[] args, CancellationToken cancellationToken)
         => Publish(SignalRMessageScope.Users, methodName, args, userIds, null, cancellationToken);
 
     private Task Publish(SignalRMessageScope scope, string method, object[] args, IEnumerable<string>? targets, IReadOnlyList<string>? excluded, CancellationToken ct)
     {
-        var payload = JsonSerializer.Serialize(args, _serializerOptions);
         return _backplane.PublishAsync(new SignalRMessage
         {
             Id = Guid.NewGuid(),
             Scope = scope,
             Method = method,
-            Payload = payload,
+            Arguments = args,
             Targets = targets?.ToArray(),
             ExcludedConnectionIds = excluded?.ToArray(),
             SenderId = _serverId
@@ -147,49 +143,51 @@ public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> w
 
     private async Task ListenAsync()
     {
-        await _backplane.SubscribeAsync(async msg =>
+        await _backplane.SubscribeAsync(SendMessage, _cts.Token).ConfigureAwait(false);
+    }
+
+    private async Task SendMessage(SignalRMessage message)
+    {
+        switch (message.Scope)
         {
-            switch (msg.Scope)
-            {
-                case SignalRMessageScope.All:
-                    await SendToConnections(_connections.Keys, msg.Method, msg.Payload);
-                    break;
-                case SignalRMessageScope.AllExcept:
-                    await SendToConnections(_connections.Keys, msg.Method, msg.Payload, msg.ExcludedConnectionIds!.ToHashSet());
-                    break;
-                case SignalRMessageScope.Connections:
-                    await SendToConnections(msg.Targets!, msg.Method, msg.Payload);
-                    break;
-                case SignalRMessageScope.Groups:
+            case SignalRMessageScope.All:
+                await SendToConnections(_connections.Keys, message.Method, message.Arguments).ConfigureAwait(false);
+                break;
+            case SignalRMessageScope.AllExcept:
+                await SendToConnections(_connections.Keys, message.Method, message.Arguments, message.ExcludedConnectionIds!.ToHashSet()).ConfigureAwait(false);
+                break;
+            case SignalRMessageScope.Connections:
+                await SendToConnections(message.Targets!, message.Method, message.Arguments).ConfigureAwait(false);
+                break;
+            case SignalRMessageScope.Groups:
+                {
+                    foreach (var group in message.Targets!)
                     {
-                        foreach (var group in msg.Targets!)
+                        if (_groups.TryGetValue(group, out var connections))
                         {
-                            if (_groups.TryGetValue(group, out var connections))
-                            {
-                                await SendToConnections(connections.Keys, msg.Method, msg.Payload);
-                            }
+                            await SendToConnections(connections.Keys, message.Method, message.Arguments).ConfigureAwait(false);
                         }
                     }
-                    break;
-                case SignalRMessageScope.GroupExcept:
+                }
+                break;
+            case SignalRMessageScope.GroupExcept:
+                {
+                    var g = message.Targets![0];
+                    if (_groups.TryGetValue(g, out var connections))
                     {
-                        var g = msg.Targets![0];
-                        if (_groups.TryGetValue(g, out var connections))
-                        {
-                            await SendToConnections(connections.Keys, msg.Method, msg.Payload, msg.ExcludedConnectionIds!.ToHashSet());
-                        }
+                        await SendToConnections(connections.Keys, message.Method, message.Arguments, message.ExcludedConnectionIds!.ToHashSet()).ConfigureAwait(false);
                     }
-                    break;
-                case SignalRMessageScope.Users:
-                    foreach (var user in msg.Targets!)
+                }
+                break;
+            case SignalRMessageScope.Users:
+                foreach (var user in message.Targets!)
+                {
+                    if (_users.TryGetValue(user, out var conns))
                     {
-                        if (_users.TryGetValue(user, out var conns))
-                        {
-                            await SendToConnections(conns.Keys, msg.Method, msg.Payload);
-                        }
+                        await SendToConnections(conns.Keys, message.Method, message.Arguments).ConfigureAwait(false);
                     }
-                    break;
-            }
-        }, _cts.Token);
+                }
+                break;
+        }
     }
 }
