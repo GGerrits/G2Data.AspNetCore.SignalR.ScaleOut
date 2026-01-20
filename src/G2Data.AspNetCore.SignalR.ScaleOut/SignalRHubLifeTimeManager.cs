@@ -2,7 +2,6 @@ using G2Data.AspNetCore.SignalR.ScaleOut.Core;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
 namespace G2Data.AspNetCore.SignalR.ScaleOut;
