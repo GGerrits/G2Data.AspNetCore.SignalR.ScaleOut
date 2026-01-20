@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36327.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G2Data.AspNetCore.SignalR.ScaleOut", "G2Data.AspNetCore.SignalR.ScaleOut\G2Data.AspNetCore.SignalR.ScaleOut.csproj", "{CB582E91-6E9A-47C7-98A5-AC3B94BD0F54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G2Data.AspNetCore.SignalR.ScaleOut.Core", "G2Data.AspNetCore.SignalR.ScaleOut.Core\G2Data.AspNetCore.SignalR.ScaleOut.Core.csproj", "{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB", "G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB\G2Data.AspNetCore.SignalR.ScaleOut.Core.MongoDB.csproj", "{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CB582E91-6E9A-47C7-98A5-AC3B94BD0F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB582E91-6E9A-47C7-98A5-AC3B94BD0F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB582E91-6E9A-47C7-98A5-AC3B94BD0F54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB582E91-6E9A-47C7-98A5-AC3B94BD0F54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03DBCFC6-D0D7-396D-30C5-F3A742E47C96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF0DE3DA-0A2A-E0C5-F7FB-5547AB03D61B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {216FBFED-6396-4CFF-A927-93E1401AFA5B}
+	EndGlobalSection
+EndGlobal
