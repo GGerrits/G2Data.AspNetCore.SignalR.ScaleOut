@@ -1,0 +1,1 @@
+# G2Data.AspNetCore.SignalR.ScaleOut
