@@ -28,7 +28,6 @@ internal sealed class SignalRMessageDO
         var arguments = JsonSerializer.Deserialize<object[]>(Payload, _serializerOptions);
         return new SignalRMessage
         {
-            Id = Guid.NewGuid(),
             Scope = Scope,
             Method = Method,
             Arguments = arguments!,

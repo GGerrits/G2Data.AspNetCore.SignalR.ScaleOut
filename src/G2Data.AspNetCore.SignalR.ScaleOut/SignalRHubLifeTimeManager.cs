@@ -131,7 +131,6 @@ public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> w
     {
         return _backplane.PublishAsync(new SignalRMessage
         {
-            Id = Guid.NewGuid(),
             Scope = scope,
             Method = method,
             Arguments = args,
