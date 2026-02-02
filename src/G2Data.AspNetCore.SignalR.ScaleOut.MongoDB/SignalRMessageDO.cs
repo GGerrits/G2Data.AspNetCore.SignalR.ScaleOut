@@ -32,7 +32,9 @@ internal sealed class SignalRMessageDO
             Method = Method,
             Arguments = arguments!,
             SenderId = SenderId,
-            SentAt = SentAt
+            SentAt = SentAt,
+            Targets = Targets,
+            ExcludedConnectionIds = ExcludedConnectionIds
         };
     }
 
@@ -46,7 +48,9 @@ internal sealed class SignalRMessageDO
             Method = message.Method,
             Payload = payload,
             SenderId = message.SenderId,
-            SentAt = message.SentAt
+            SentAt = message.SentAt,
+            Targets = message.Targets,
+            ExcludedConnectionIds = message.ExcludedConnectionIds
         };
     }
 }
