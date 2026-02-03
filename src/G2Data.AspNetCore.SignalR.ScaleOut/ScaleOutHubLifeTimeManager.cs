@@ -1,27 +1,34 @@
 using G2Data.AspNetCore.SignalR.ScaleOut.Core;
+using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
 namespace G2Data.AspNetCore.SignalR.ScaleOut;
 
 internal sealed class ScaleOutHubLifeTimeManager<THub> : HubLifetimeManager<THub> where THub : Hub
 {
-    public ScaleOutHubLifeTimeManager(ISignalRBackplane backplane, IHostApplicationLifetime lifetime)
+    public ScaleOutHubLifeTimeManager(ISignalRBackplane backplane
+        , IHostApplicationLifetime lifetime
+        , ILogger<ScaleOutHubLifeTimeManager<THub>> logger)
     {
         _backplane = backplane;
+        _logger = logger;
         _ = Task.Run(ListenAsync);
         lifetime.ApplicationStopping.Register(_cts.Cancel);
     }
 
     private readonly ISignalRBackplane _backplane;
 
+    private readonly ILogger<ScaleOutHubLifeTimeManager<THub>> _logger;
+
     private readonly string _serverId = Guid.NewGuid().ToString();
 
     private readonly CancellationTokenSource _cts = new();
 
-    private readonly ConcurrentDictionary<string, HubConnectionContext> _connections = new();
+    private readonly ConcurrentDictionary<string, HubConnectionContextInfo> _connections = new();
 
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _groups = new();
 
@@ -29,7 +36,7 @@ internal sealed class ScaleOutHubLifeTimeManager<THub> : HubLifetimeManager<THub
 
     public override Task OnConnectedAsync(HubConnectionContext connection)
     {
-        _connections[connection.ConnectionId] = connection;
+        _connections[connection.ConnectionId] = new(connection);
         if (connection.UserIdentifier is not null)
         {
             var connections = _users.GetOrAdd(connection.UserIdentifier, _ => new ConcurrentDictionary<string, byte>());
@@ -87,16 +94,33 @@ internal sealed class ScaleOutHubLifeTimeManager<THub> : HubLifetimeManager<THub
             {
                 continue;
             }
-            if (!_connections.TryGetValue(id, out var conn))
+            if (!_connections.TryGetValue(id, out var connContextInfo))
             {
                 continue;
             }
-            var invocationMessage = new InvocationMessage(method, args);
-            var serialized = new SerializedHubMessage(invocationMessage);
-            var task = conn.WriteAsync(serialized).AsTask();
+            var task = SendToConnection(connContextInfo, method, args);
             tasks.Add(task);
         }
         await Task.WhenAll(tasks).ConfigureAwait(false);
+    }
+
+    private async Task SendToConnection(HubConnectionContextInfo hubConnectionContextInfo, string method, object[] args)
+    {
+        try
+        {
+            await hubConnectionContextInfo.Lock.WaitAsync();
+            var invocationMessage = new InvocationMessage(method, args);
+            var serialized = new SerializedHubMessage(invocationMessage);
+            await hubConnectionContextInfo.HubConnectionContext.WriteAsync(serialized).AsTask().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to send message to connectionId {hubConnectionContextInfo.HubConnectionContext.ConnectionId}");
+        }
+        finally
+        {
+            hubConnectionContextInfo.Lock.Release();
+        }
     }
 
     public override Task SendAllAsync(string methodName, object[] args, CancellationToken cancellationToken)
@@ -187,5 +211,12 @@ internal sealed class ScaleOutHubLifeTimeManager<THub> : HubLifetimeManager<THub
                 }
                 break;
         }
+    }
+
+    private class HubConnectionContextInfo(HubConnectionContext hubConnectionContext)
+    {
+        public HubConnectionContext HubConnectionContext { get; } = hubConnectionContext;
+
+        public SemaphoreSlim Lock { get; } = new(1, 1);
     }
 }
