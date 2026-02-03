@@ -6,7 +6,7 @@ namespace G2Data.AspNetCore.SignalR.ScaleOut;
 
 public static class SignalRServerBuilderExtensions
 {
-    public static ISignalRScaleOutBuilder AddMongoDB(this ISignalRServerBuilder builder)
+    public static ISignalRScaleOutBuilder AddScaleOut(this ISignalRServerBuilder builder)
     {
         builder.Services.AddSingleton(typeof(HubLifetimeManager<>), typeof(ScaleOutHubLifeTimeManager<>));
         return new SignalRScaleOutBuilder { SignalRBuilder = builder };
