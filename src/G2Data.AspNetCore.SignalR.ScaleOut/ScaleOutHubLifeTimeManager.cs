@@ -1,5 +1,4 @@
 using G2Data.AspNetCore.SignalR.ScaleOut.Core;
-using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Extensions.Hosting;
