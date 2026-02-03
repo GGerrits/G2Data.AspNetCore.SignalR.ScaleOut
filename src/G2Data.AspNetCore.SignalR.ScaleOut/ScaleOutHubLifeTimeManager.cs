@@ -6,9 +6,9 @@ using System.Collections.Concurrent;
 
 namespace G2Data.AspNetCore.SignalR.ScaleOut;
 
-public sealed class SignalRHubLifeTimeManager<THub> : HubLifetimeManager<THub> where THub : Hub
+internal sealed class ScaleOutHubLifeTimeManager<THub> : HubLifetimeManager<THub> where THub : Hub
 {
-    public SignalRHubLifeTimeManager(ISignalRBackplane backplane, IHostApplicationLifetime lifetime)
+    public ScaleOutHubLifeTimeManager(ISignalRBackplane backplane, IHostApplicationLifetime lifetime)
     {
         _backplane = backplane;
         _ = Task.Run(ListenAsync);

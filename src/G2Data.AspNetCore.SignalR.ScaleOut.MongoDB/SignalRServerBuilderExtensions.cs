@@ -6,14 +6,13 @@ namespace G2Data.AspNetCore.SignalR.ScaleOut.MongoDB;
 
 public static class SignalRServerBuilderExtensions
 {
-    public static ISignalRServerBuilder AddMongoDB(this ISignalRServerBuilder builder, Action<MongoDBOptions> configure)
+    public static ISignalRServerBuilder AddMongoDB(this ISignalRScaleOutBuilder builder, Action<MongoDBOptions> configure)
     {
         var options = new MongoDBOptions();
         configure(options);
         ValidateMongoDBOptions(options);
-        builder.Services.AddSingleton<ISignalRBackplane>(sp => InitBackplane(sp, options));
-        builder.Services.AddSingleton(typeof(HubLifetimeManager<>), typeof(SignalRHubLifeTimeManager<>));
-        return builder;
+        builder.SignalRBuilder.Services.AddSingleton<ISignalRBackplane>(sp => InitBackplane(sp, options));
+        return builder.SignalRBuilder;
     }
 
     private static MongoDBBackplane InitBackplane(IServiceProvider serviceProvider, MongoDBOptions options)
